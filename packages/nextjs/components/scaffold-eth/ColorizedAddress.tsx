@@ -19,20 +19,31 @@ function segmentAddress(address: Address): AddressSegment[] {
   return segments;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function hashToColor(segment: string, index: number, totalSegments: number): Color {
-  // Hash the segment content to get a base hue value
-  let hash = 0;
+  // Create base RGB values that are influenced by the character's position
+  let r = 0,
+    g = 0,
+    b = 0;
   for (let i = 0; i < segment.length; i++) {
-    hash = segment.charCodeAt(i) + ((hash << 5) - hash);
+    const charCode = segment.charCodeAt(i);
+    // Depending on the character position, influence a different color component
+    switch (i % 3) {
+      case 0: // First character influences red
+        r ^= (charCode << 5) | (charCode >> 3);
+        break;
+      case 1: // Second character influences green
+        g ^= (charCode << 5) | (charCode >> 3);
+        break;
+      case 2: // Third character influences blue
+        b ^= (charCode << 5) | (charCode >> 3);
+        break;
+    }
   }
 
-  // Get a hue that is based on the segment content and index to ensure variety
-  const baseHue = hash % 360;
-  const hue = (baseHue + index * (360 / totalSegments)) % 360;
-
-  const saturation = 90; // High saturation for vivid colors
-  const lightness = 40; // Lightness adjusted for visibility on white background
-  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  // Convert the RGB values into HEX
+  const color = `#${((1 << 24) + (r % 256 << 16) + (g % 256 << 8) + (b % 256)).toString(16).slice(1)}`;
+  return color;
 }
 
 const ColorizedAddress = ({ address }: { address: Address }) => {
